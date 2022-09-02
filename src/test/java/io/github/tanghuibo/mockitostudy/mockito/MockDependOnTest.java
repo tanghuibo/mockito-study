@@ -1,4 +1,4 @@
-package io.github.tanghuibo.mockitostudy.basic;
+package io.github.tanghuibo.mockitostudy.mockito;
 
 
 import org.junit.jupiter.api.Test;

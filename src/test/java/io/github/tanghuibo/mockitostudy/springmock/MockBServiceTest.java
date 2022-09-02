@@ -16,9 +16,9 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class BServiceTest {
+public class MockBServiceTest {
 
-    Logger log = LoggerFactory.getLogger(BServiceTest.class);
+    Logger log = LoggerFactory.getLogger(MockBServiceTest.class);
 
     @Resource
     BService bService;

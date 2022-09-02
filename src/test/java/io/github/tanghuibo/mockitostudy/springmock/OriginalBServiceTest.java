@@ -1,5 +1,6 @@
-package io.github.tanghuibo.mockitostudy.service;
+package io.github.tanghuibo.mockitostudy.springmock;
 
+import io.github.tanghuibo.mockitostudy.service.BService;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,9 +12,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 @SpringBootTest
-public class BServiceTest {
+public class OriginalBServiceTest {
 
-    Logger log = LoggerFactory.getLogger(BServiceTest.class);
+    Logger log = LoggerFactory.getLogger(OriginalBServiceTest.class);
 
     @Resource
     BService bService;
