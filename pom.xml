@@ -33,12 +33,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.gitee.ForteScarlet</groupId>
-			<artifactId>mock.java</artifactId>
-			<version>1.9.2</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>2.11.0</version>
@@ -47,13 +41,6 @@
 			<groupId>com.alibaba</groupId>
 			<artifactId>fastjson</artifactId>
 			<version>1.2.83</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito2 -->
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito2</artifactId>
-			<version>2.0.9</version>
-			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
