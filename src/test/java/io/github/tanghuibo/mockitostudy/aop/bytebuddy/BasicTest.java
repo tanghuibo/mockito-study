@@ -1,15 +1,19 @@
-package io.github.tanghuibo.mockitostudy.runtime.bytebuddy;
+package io.github.tanghuibo.mockitostudy.aop.bytebuddy;
 
-import io.github.tanghuibo.mockitostudy.runtime.BasicBean;
+import io.github.tanghuibo.mockitostudy.aop.BasicBean;
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.*;
 import net.bytebuddy.matcher.ElementMatchers;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.objenesis.ObjenesisHelper;
 
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -41,12 +45,12 @@ public class BasicTest {
     @Test
     public void methodDelegationTest() {
         MethodDelegationTestBean bean = new MethodDelegationTestBean();
-        Class<? extends BasicBean> clazz = new ByteBuddy()
+        Class<? extends BasicBean> clazz = toByte(new ByteBuddy()
                 .subclass(BasicBean.class)
                 .method(ElementMatchers.named("sayHello"))
                 //或者静态方法的class
                 .intercept(MethodDelegation.to(bean))
-                .make()
+                .make(), "methodDelegationTest")
                 .load(BasicTest.class.getClassLoader()).getLoaded();
 
         BasicBean basicBean = ObjenesisHelper.newInstance(clazz);
@@ -56,16 +60,27 @@ public class BasicTest {
 
     @Test
     public void methodDelegationInterceptorTest() {
-        Class<? extends BasicBean> clazz = new ByteBuddy()
+        Class<? extends BasicBean> clazz = toByte(new ByteBuddy()
                 .subclass(BasicBean.class)
                 .method(ElementMatchers.named("sayHello"))
                 //或者静态方法的class
                 .intercept(MethodDelegation.to(MethodInterceptor.class))
-                .make()
-                .load(BasicTest.class.getClassLoader()).getLoaded();
+                .make(), "methodDelegationInterceptorTest")
+                .load(BasicTest.class.getClassLoader())
+                .getLoaded();
 
         BasicBean basicBean = ObjenesisHelper.newInstance(clazz);
         assertThat(basicBean.sayHello("Bob"), equalTo("hello big boss Bob， 我是 bytebuddy"));
+    }
+
+    private <T> DynamicType.Unloaded<T> toByte(DynamicType.Unloaded<T> upload, String fileName) {
+        byte[] bytes = upload.getBytes();
+        try {
+            FileUtils.writeByteArrayToFile(new File("d://class/" +  fileName +".class"), bytes);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return upload;
     }
 
     public static class MethodDelegationTestBean {
