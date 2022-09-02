@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.objenesis.ObjenesisHelper;
 
 
+import java.lang.reflect.Method;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -76,8 +78,8 @@ public class BasicTest {
     public static class MethodInterceptor {
 
         @RuntimeType
-        public static Object around(@Argument(0) String arg0, @Super BasicBean bean) throws Exception {
-            return bean.sayHello("big boss " + arg0) + "， 我是 bytebuddy";
+        public static Object around(@Argument(0) String arg0, @This Object o, @SuperMethod Method method) throws Exception {
+            return method.invoke(o, "big boss " + arg0) + "， 我是 bytebuddy";
         }
     }
 }
