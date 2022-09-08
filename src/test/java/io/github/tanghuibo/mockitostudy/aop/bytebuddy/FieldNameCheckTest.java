@@ -41,7 +41,7 @@ public class FieldNameCheckTest {
     private Object buildObjWithFieldName(String fieldName) throws InstantiationException, IllegalAccessException {
         return new ByteBuddy()
                 .subclass(Object.class)
-                .name("ThbTest")
+                .name("ThbTest$" + fieldName.hashCode())
                 .defineField(fieldName, String.class, Modifier.PUBLIC)
                 .make()
                 .load(BasicTest.class.getClassLoader()).getLoaded().newInstance();
