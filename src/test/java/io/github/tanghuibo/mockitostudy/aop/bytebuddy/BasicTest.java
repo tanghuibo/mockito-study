@@ -45,12 +45,12 @@ public class BasicTest {
     @Test
     public void methodDelegationTest() {
         MethodDelegationTestBean bean = new MethodDelegationTestBean();
-        Class<? extends BasicBean> clazz = toByte(new ByteBuddy()
+        Class<? extends BasicBean> clazz = new ByteBuddy()
                 .subclass(BasicBean.class)
                 .method(ElementMatchers.named("sayHello"))
                 //或者静态方法的class
                 .intercept(MethodDelegation.to(bean))
-                .make(), "methodDelegationTest")
+                .make()
                 .load(BasicTest.class.getClassLoader()).getLoaded();
 
         BasicBean basicBean = ObjenesisHelper.newInstance(clazz);
@@ -58,20 +58,36 @@ public class BasicTest {
     }
 
 
-    @Test
-    public void methodDelegationInterceptorTest() {
-        Class<? extends BasicBean> clazz = toByte(new ByteBuddy()
+    public static class MethodInterceptor {
+        @RuntimeType
+        public static Object around(@Argument(0) String arg0, @This Object proxyObj, @SuperMethod Method method) throws Exception {
+            return method.invoke(((AopBeanInterface) proxyObj).getTarget(), arg0.toUpperCase()) + "; 欢迎使用 bytebuddy";
+        }
+    }
+    public static interface AopBeanInterface { Object getTarget(); }
+
+    private static BasicBean aop(BasicBean realBean) {
+        Class<? extends BasicBean> clazz = new ByteBuddy()
                 .subclass(BasicBean.class)
+                .implement(AopBeanInterface.class)
+                .method(ElementMatchers.named("getTarget"))
+                .intercept(FixedValue.value(realBean))
                 .method(ElementMatchers.named("sayHello"))
                 //或者静态方法的class
                 .intercept(MethodDelegation.to(MethodInterceptor.class))
-                .make(), "methodDelegationInterceptorTest")
+                .make()
                 .load(BasicTest.class.getClassLoader())
                 .getLoaded();
-
-        BasicBean basicBean = ObjenesisHelper.newInstance(clazz);
-        assertThat(basicBean.sayHello("Bob"), equalTo("hello big boss Bob， 我是 bytebuddy"));
+        BasicBean proxyBean = ObjenesisHelper.newInstance(clazz);
+        return proxyBean;
     }
+
+    @Test
+    public void methodDelegationInterceptorTest() {
+        BasicBean proxyBean = aop(new BasicBean());
+        assertThat(proxyBean.sayHello("thb"), equalTo("hello THB; 欢迎使用 bytebuddy"));
+    }
+
 
     private <T> DynamicType.Unloaded<T> toByte(DynamicType.Unloaded<T> upload, String fileName) {
         byte[] bytes = upload.getBytes();
@@ -90,11 +106,5 @@ public class BasicTest {
     }
 
 
-    public static class MethodInterceptor {
 
-        @RuntimeType
-        public static Object around(@Argument(0) String arg0, @This Object o, @SuperMethod Method method) throws Exception {
-            return method.invoke(o, "big boss " + arg0) + "， 我是 bytebuddy";
-        }
-    }
 }

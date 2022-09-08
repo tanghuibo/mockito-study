@@ -3,7 +3,6 @@ package io.github.tanghuibo.mockitostudy.aop.cglib;
 import io.github.tanghuibo.mockitostudy.aop.BasicBean;
 import org.junit.jupiter.api.Test;
 import org.objenesis.ObjenesisHelper;
-import org.springframework.cglib.core.DebuggingClassWriter;
 import org.springframework.cglib.proxy.*;
 
 
@@ -18,22 +17,36 @@ import static org.hamcrest.Matchers.equalTo;
  */
 public class BasicTest {
 
-    @Test
-    public void test() {
-        // 存放动态生成的 class
-        System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, "d:\\class");
+    BasicBean aop(BasicBean realBean) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(BasicBean.class);
-        MethodInterceptor callBack = (o, method, objects, methodProxy) -> {
-            objects[0] = "big boss " + objects[0];
-            Object result = methodProxy.invokeSuper(o, objects);
-            return result + "， 我是 cglib";
+        MethodInterceptor callback = (proxyObj, method, objects, methodProxy) -> {
+            // 修改入参
+            objects[0] = objects[0].toString().toUpperCase();
+            // 真实调用，此处使用 fastClass 技术，不走反射
+            Object result = methodProxy.invoke(realBean, objects);
+            // 修改返回值
+            return result + "; 欢迎使用 cgLib";
         };
-        enhancer.setCallbackType(MethodInterceptor.class);
+        enhancer.setCallbackTypes(new Class[] { MethodInterceptor.class });
+        // callbackTypes 为多个时使用，设置对象的某个 method 由第几个 callbackType 拦截
+        // enhancer.setCallbackFilter(method -> {
+        //      // method 为生成字节码时解析产生，运行过程中不使用反射
+        //      return 0;
+        // });
+        // 生成 class，也可通过 create() 直接生成对象
         Class<BasicBean> clazz = enhancer.createClass();
-        BasicBean basicBean = ObjenesisHelper.newInstance(clazz);
-        ((Factory) basicBean).setCallbacks(new Callback[] {callBack});
-        assertThat(basicBean.sayHello("Bob"), equalTo("hello big boss Bob， 我是 cglib"));
+        // 类生成对象
+        BasicBean proxyBean = ObjenesisHelper.newInstance(clazz);
+        // 生成代理对象后可动态设置 callback
+        ((Factory) proxyBean).setCallbacks(new Callback[] { callback });
+        return proxyBean;
+    }
 
+    @Test
+    public void aopTest() {
+        BasicBean realBean = new BasicBean();
+        BasicBean proxyBean = aop(realBean);
+        assertThat(proxyBean.sayHello("thb"), equalTo("hello THB; 欢迎使用 cgLib"));
     }
 }
