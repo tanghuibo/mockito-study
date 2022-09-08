@@ -20,15 +20,10 @@ public class FieldNameCheckTest {
 
     @Test
     public void fieldValueTest() {
-        List<String> list = Arrays.asList("!a", "[b", "class", "/d");
-        List<String> result = list.stream().filter(fieldName -> {
+        List<String> list = Arrays.asList("<a", "[b", "class", "/d");
+        List<String> result = list.stream().filter(name -> {
             try {
-                Object o = buildObjWithFieldName(fieldName);
-                String testValue = "thbTest";
-                Field field = o.getClass().getField(fieldName);
-                assertThat(field.get(o), equalTo(testValue));
-                log.info("{}: getResult: {}", fieldName, field.get(o));
-                field.set(o, testValue);
+                checkFieldName(name);
                 return true;
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -38,12 +33,18 @@ public class FieldNameCheckTest {
         log.info("result: {}", result);
     }
 
-    private Object buildObjWithFieldName(String fieldName) throws InstantiationException, IllegalAccessException {
-        return new ByteBuddy()
+    private void checkFieldName(String fieldName) throws InstantiationException, IllegalAccessException, NoSuchFieldException {
+        String value = "thbTest";
+        Class clazz = new ByteBuddy()
                 .subclass(Object.class)
-                .name("ThbTest$" + fieldName.hashCode())
+                .name("ThbTest")
                 .defineField(fieldName, String.class, Modifier.PUBLIC)
                 .make()
-                .load(BasicTest.class.getClassLoader()).getLoaded().newInstance();
+                .load(BasicTest.class.getClassLoader()).getLoaded();
+        Object o = clazz.newInstance();
+        Field field = clazz.getField(fieldName);
+        field.set(o, value);
+        assertThat(field.get(o), equalTo(value));
+        log.info("{}: getResult: {}", fieldName, field.get(o));
     }
 }
