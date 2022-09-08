@@ -38,13 +38,12 @@ public class FieldNameCheckTest {
         log.info("result: {}", result);
     }
 
-    private Object buildObjWithFieldName(String fieldName) throws InstantiationException, IllegalAccessException, NoSuchFieldException {
-        Class clazz = new ByteBuddy()
+    private Object buildObjWithFieldName(String fieldName) throws InstantiationException, IllegalAccessException {
+        return new ByteBuddy()
                 .subclass(Object.class)
                 .name("ThbTest")
                 .defineField(fieldName, String.class, Modifier.PUBLIC)
                 .make()
-                .load(BasicTest.class.getClassLoader()).getLoaded();
-        return clazz.newInstance();
+                .load(BasicTest.class.getClassLoader()).getLoaded().newInstance();
     }
 }
